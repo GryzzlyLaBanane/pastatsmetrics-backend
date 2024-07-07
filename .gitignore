@@ -1,0 +1,9 @@
+*.log
+*.pot
+*.pyc
+__pycache__/
+staticfiles/
+pastatsmetrics/settings.py
+.env
+.db.sqlite3
+.dockerignore
