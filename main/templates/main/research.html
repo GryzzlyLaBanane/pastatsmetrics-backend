@@ -1,10 +1,167 @@
 <!DOCTYPE html>
+<!-- http://127.0.0.1:8000/pastats/api/search/ -->
+{% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>OUAISOUAISOUAIS</title>
+    <title>Player Search</title>
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'all_search.css' %}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 <body>
+    <div class="container mt-4">
+        <form id="search-form" class="mb-3">
+            <div class="mb-3">
+                <div class="form-check form-check-inline">
+                    <input type="checkbox" class="form-check-input" id="lobby_id" value="lobby_id" checked>
+                    <label class="form-check-label" for="lobby_id">Lobby ID</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input type="checkbox" class="form-check-input" id="uber_id" value="uber_id" checked>
+                    <label class="form-check-label" for="uber_id">Uber ID</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input type="checkbox" class="form-check-input" id="player_name" value="player_name" checked>
+                    <label class="form-check-label" for="player_name">Player Name</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input type="checkbox" class="form-check-input" id="player_list" value="player_list">
+                    <label class="form-check-label" for="player_list">Player List</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input type="checkbox" class="form-check-input" id="user_name" value="user_name">
+                    <label class="form-check-label" for="user_name">User Name</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input type="checkbox" class="form-check-input" id="system_name" value="system_name">
+                    <label class="form-check-label" for="system_name">System Name</label>
+                </div>
+            </div>
+            <div class="input-group mb-3">
+                <input type="text" id="search-query" name="search-query" class="form-control" placeholder="Enter search query">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+        </form>
+        <div id="search-results"></div>
+    </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#search-form').submit(function(event) {
+                event.preventDefault();
+                var query = $('#search-query').val();
+                var fields = [];
+                $('.form-check-input:checked').each(function() {
+                    fields.push($(this).val());
+                });
+
+                if (fields.length === 0) {
+                    alert("Please select at least one field to search.");
+                    return;
+                }
+
+                $.get('http://127.0.0.1:8000/pastats/api/search/', { query: query, fields: fields.join(',') }, function(data) {
+                    $('#search-results').empty();
+                    if (data.length === 0) {
+                        $('#search-results').append('<p>No results found</p>');
+                    } else {
+                        var table = `
+                            <table class="table custom-table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>System Name</th>
+                                        <th>Number of Players</th>
+                                        <th>Game Type</th>
+                                        <th>Duration</th>
+                                        <th>Players</th>
+                                        <th>Lobby ID</th>
+                                        <th>Winners</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+
+                        data.forEach(function(entry) {
+                            var startDate = new Date(entry.date_game_start);
+                            var endDate = new Date(entry.date_game_last);
+                            var durationMs = endDate - startDate;
+                            var minutes = Math.floor(durationMs / 60000);
+                            var seconds = ((durationMs % 60000) / 1000).toFixed(0);
+                            var duration = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+                            var playerNames = "";
+                            try {
+                                if (entry.player_list) {
+                                    var playerList = JSON.parse(entry.player_list);
+                                    playerNames = Object.keys(playerList).join(", ");
+                                }
+                            } catch (e) {
+                                console.error("Error parsing player list:", e);
+                                playerNames = "Error parsing player list";
+                            }
+
+                            var winners = "No known Winner";
+                            try {
+                                if (entry.winners) {
+                                    winners = entry.winners
+                                }
+                            } catch (e) {
+                                console.error("Error parsing winners list:", e);
+                            }
+
+                            table += `
+                                <tr class="clickable-row" data-href="http://127.0.0.1:8000/pastats/charts=${entry.lobby_id}">
+                                    <td>${entry.date_game_start}</td>
+                                    <td>${entry.system_name}</td>
+                                    <td>${entry.player_count}</td>
+                                    <td>${entry.game_mode}</td>
+                                    <td>${duration}</td>
+                                    <td>${playerNames}</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm copy-button" data-lobby-id="${entry.lobby_id}">Copy</button>
+                                    </td>
+                                    <td>${winners}</td>
+                                </tr>
+                            `;
+                        });
+
+                        table += `
+                                </tbody>
+                            </table>
+                        `;
+                        $('#search-results').append(table);
+
+                        // Add click event listener to rows
+                        $('.clickable-row').click(function() {
+                            window.location = $(this).data('href');
+                        });
+
+                        // Add click event listener to copy buttons
+                        $('.copy-button').click(function(event) {
+                            event.stopPropagation();  // Prevent the row click event
+                            var lobbyId = $(this).data('lobby-id');
+                            navigator.clipboard.writeText(lobbyId).then(function() {
+                                // You can add a tooltip or a small notification instead of alert
+                                $(event.target).text('Copied!').delay(1000).queue(function(next){
+                                    $(this).text('Copy');
+                                    next();
+                                });
+                            }, function() {
+                                console.error('Failed to copy Lobby ID.');
+                            });
+                        });
+                    }
+                }).fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error("Error during request:", textStatus, errorThrown);
+                    alert("An error occurred while fetching data.");
+                });
+            });
+        });
+    </script>
 </body>
 </html>

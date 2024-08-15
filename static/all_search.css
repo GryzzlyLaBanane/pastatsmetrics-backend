@@ -1,0 +1,63 @@
+body {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+.form-check-input {
+    background-color: #1f1f1f;
+    border-color: #ffffff;
+}
+
+.form-check-input:checked {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.form-control {
+    background-color: #1f1f1f;
+    color: #ffffff;
+    border-color: #3a3a3a;
+}
+
+.form-control:focus {
+    background-color: #1f1f1f;
+    color: #ffffff;
+    border-color: #007bff;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.custom-table thead th {
+    color: #f0f0f0; /* Change this to your desired header text color */
+}
+
+.custom-table tbody tr:nth-of-type(odd) {
+    background-color: #2a2a2a;
+    color: #ffffff; /* Background color for odd rows */
+}
+
+.custom-table tbody tr:nth-of-type(even) {
+    background-color: #1f1f1f;
+    color: #ffffff; /* Background color for even rows */
+}
+
+.custom-table tbody tr.clickable-row:hover {
+    background-color: #008b8b; /* Teal/Cyan hover background color */
+    color: #ffffff; /* Text color on hover */
+}
+
+.clickable-row {
+    cursor: pointer;
+}
+
+.copy-button {
+    cursor: pointer;
+}
+
+.copy-button:hover {
+    color: #ffffff;
+    background-color: #0056b3;
+}

@@ -1,0 +1,96 @@
+h1 {
+    margin-bottom: 20px; /* Adjust the value as needed */
+}
+.btn-panel, .chart-options-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.btn-panel {
+    margin-bottom: 20px;
+}
+
+.chart-container {
+    margin-bottom: 20px;
+}
+
+.btn {
+    width: 80%;
+    margin-bottom: 4px;
+    padding: 5px 10px; /* Adjust padding to reduce size */
+    font-size: 14px; /* Adjust font size to reduce size */
+}
+
+.accordion-button {
+    width: 100%;
+    text-align: left;
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+}
+
+.accordion-button.collapsed {
+    background-color: #007bff;
+    color: #ffffff;
+}
+.accordion-button:not(.collapsed) {
+    background-color: #007bf0; /* Teal/Cyan background color when clicked */
+    color: #ffffff;
+}
+
+.accordion-body .btn {
+    width: 100%;
+    text-align: center;
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+}
+
+.accordion-body .btn:hover {
+    background-color: #0056b3;
+    color: #ffffff;
+}
+.accordion-body {
+    background-color: #333333; /* Dark background color */
+}
+.accordion-item {
+    background-color: #333333; /* Dark background color for accordion item */
+    border: none; /* Remove any borders */
+}
+.accordion-header {
+    background-color: #333333; /* Dark background color for accordion header */
+}
+.btn-primary {
+    margin-bottom: 5px !important; /* Reduce space between secondary buttons */
+}
+.btn-secondary {
+    margin-bottom: 5px !important; /* Reduce space between secondary buttons */
+}
+.clicked {
+    background-color: green !important; /* Change background color when clicked */
+}
+#myChart {
+    background-color: #515b70 !important; /* Light Teal Blue background color */
+    border-radius: 8px; /* Optional: add some rounding for a nicer look */
+    padding: 10px; /* Optional: add some padding for better spacing */
+}
+.special-button {
+    width: 100%;
+    text-align: center;
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+}
+
+.special-button:hover {
+    background-color: #0056b3;
+    color: #ffffff;
+}
+
+/* Style for the kill images */
+.kill-image {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+}

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>Lobby Charts</title>
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'all_charts.css' %}">
+    <script type="text/JavaScript" src="https://cdn.jsdelivr.net/npm/lodash@4.17.20/lodash.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+</head>
+<body class="bg-dark text-light">
+        <h1>Lobby Charts for {{ lobby_data.lobby_id }}</h1>
+        <div class="row">
+            <div class="col-lg-2 btn-panel">
+                <!-- Button panel -->
+                <div class="accordion w-100" id="sidebarMenu">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingEconomy">
+                            <button class="accordion-button btn btn-primary collapsed w-100" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEconomy" aria-expanded="false" aria-controls="collapseEconomy">
+                                Economy
+                            </button>
+                        </h2>
+                        <div id="collapseEconomy" class="accordion-collapse collapse" aria-labelledby="headingEconomy" data-bs-parent="#sidebarMenu">
+                            <div class="accordion-body text-white">
+                                <button type="button" id="apmdatabutton" class="btn btn-primary mb-3 chart-button" data-dataset="apmData">APM Data</button>
+                                <button type="button" class="btn btn-primary mb-3 chart-button" data-dataset="generalEfficiency">Efficiency</button>
+                                <button type="button" id="metaleffpercbutton" class="btn btn-primary mb-3 chart-button" data-dataset="metalEfficiency">Metal Efficiency</button>
+                                <button type="button" id="energyeffpercbutton" class="btn btn-primary mb-3 chart-button" data-dataset="energyEfficiency">Energy Efficiency</button>
+                                <button type="button" id="metalincomebutton" class="btn btn-primary mb-3 chart-button" data-dataset="metalIncome">Metal Income</button>
+                                <button type="button" id="metalconsumptionbutton" class="btn btn-primary mb-3 chart-button" data-dataset="metalUsage">Metal Usage</button>
+                                <button type="button" id="metalnetbutton" class="btn btn-primary mb-3 chart-button" data-dataset="metalNet">Metal Net</button>
+                                <button type="button" id="metalmaxbutton" class="btn btn-primary mb-3 chart-button" data-dataset="metalStorage">Metal Storage</button>
+                                <button type="button" id="metalstoredbutton" class="btn btn-primary mb-3 chart-button" data-dataset="metalStored">Metal Stored</button>
+                                <button type="button" id="metalwinratebutton" class="btn btn-primary mb-3 chart-button" data-dataset="metalWinRate">Metal Win Rate</button>
+                                <button type="button" id="metallossratebutton" class="btn btn-primary mb-3 chart-button" data-dataset="metalLossRate">Metal Loss Rate</button>
+                                <button type="button" id="metalwastedbutton" class="btn btn-primary mb-3 chart-button" data-dataset="metalWasted">Metal Wasted</button>
+                                <button type="button" id="metalproducedbutton" class="btn btn-primary mb-3 chart-button" data-dataset="metalProduced">Metal Produced</button>
+                                <button type="button" id="energyincomebutton" class="btn btn-primary mb-3 chart-button" data-dataset="energyIncome">Energy Income</button>
+                                <button type="button" id="energyusagebutton" class="btn btn-primary mb-3 chart-button" data-dataset="energyUsage">Energy Usage</button>
+                                <button type="button" id="energynetbutton" class="btn btn-primary mb-3 chart-button" data-dataset="energyNet">Energy Net</button>
+                                <button type="button" id="energymaxbutton" class="btn btn-primary mb-3 chart-button" data-dataset="energyStorage">Energy Storage</button>
+                                <button type="button" id="energystoredbutton" class="btn btn-primary mb-3 chart-button" data-dataset="energyStored">Energy Stored</button>
+                                <button type="button" id="energywastedbutton" class="btn btn-primary mb-3 chart-button" data-dataset="energyWasted">Energy Wasted</button>
+                                <button type="button" id="energyproducedbutton" class="btn btn-primary mb-3 chart-button" data-dataset="energyProduced">Energy Produced</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingMilitary">
+                        <button class="accordion-button btn btn-primary collapsed w-100" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMilitary" aria-expanded="false" aria-controls="collapseMilitary">
+                            Military
+                        </button>
+                    </h2>
+                    <div id="collapseMilitary" class="accordion-collapse collapse" aria-labelledby="headingMilitary" data-bs-parent="#sidebarMenu">
+                        <div class="accordion-body text-white">
+                            <button type="submit" id="totalUnitsbutton" class="btn btn-outline-dark chart-button" data-dataset="totalUnits">Total Units</button>
+                            <button type="submit" id="totalBuildingsbutton" class="btn btn-outline-dark chart-button" data-dataset="totalBuildings">Total Buildings</button>
+                            <button type="submit" id="totalFactorybutton" class="btn btn-outline-dark chart-button" data-dataset="totalFactory">Total Factory</button>
+                            <button type="submit" id="totalFabbersbutton" class="btn btn-outline-dark chart-button" data-dataset="totalFabbers">Total Fabbers</button>
+                            <button type="submit" id="totalLandbutton" class="btn btn-outline-dark chart-button" data-dataset="totalLand">Total Land</button>
+                            <button type="submit" id="totalTankbutton" class="btn btn-outline-dark chart-button" data-dataset="totalTank">Total Tank</button>
+                            <button type="submit" id="totalBotbutton" class="btn btn-outline-dark chart-button" data-dataset="totalBot">Total Bot</button>
+                            <button type="submit" id="totalAirbutton" class="btn btn-outline-dark chart-button" data-dataset="totalAir">Total Air</button>
+                            <button type="submit" id="totalOrbitalbutton" class="btn btn-outline-dark chart-button" data-dataset="totalOrbital">Total Orbital</button>
+                            <button type="submit" id="totalNavalbutton" class="btn btn-outline-dark chart-button" data-dataset="totalNaval" title="you never play naval why are you trying to see that stats">Total Naval</button>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingSpecials">
+                            <button class="accordion-button btn btn-primary collapsed w-100" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSpecials" aria-expanded="false" aria-controls="collapseSpecials">
+                                Specials
+                            </button>
+                        </h2>
+                        <div id="collapseSpecials" class="accordion-collapse collapse" aria-labelledby="headingSpecials" data-bs-parent="#sidebarMenu">
+                            <div class="accordion-body text-white">
+                                <button type="button" id="killsButton" class="btn btn-primary mb-3 special-button" data-dataset="killsData">Kills</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8 chart-container">
+                <!-- Chart.js Chart -->
+
+                <canvas id="myChart"></canvas>
+            </div>
+            <div class="col-lg-2 chart-options-panel">
+                <!-- Chart options panel -->
+                <h5>Chart Options</h5>
+                <button class="btn btn-secondary mb-3">Option 1</button>
+                <button class="btn btn-secondary mb-3">Option 2</button>
+                <!-- Add more options as needed -->
+            </div>
+        </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],  // X-axis labels
+            datasets: []  // Initialize empty datasets array
+        },
+        options: {
+            scales: {
+                x: {
+                    type: 'linear',
+                    position: 'bottom',
+                    ticks: {
+                        color: '#FFFFFF', // Set tick color to white
+                        callback: function(value, index, values) {
+                            const minutes = Math.floor(value / 60);
+                            const seconds = value % 60;
+                            return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                        }
+                    },
+                    grid: {
+                        color: '#FFFFFF' // Set grid line color to white
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#FFFFFF' // Set tick color to white
+                    },
+                    grid: {
+                        color: '#FFFFFF' // Set grid line color to white
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#FFFFFF' // Change legend text color to white
+                    }
+                }
+            },
+            elements: {
+                line: {
+                    borderColor: '#FFFFFF' // Set line color to white
+                },
+                point: {
+                    radius: 1, // Make the dots smaller
+                    backgroundColor: '#FFFFFF' // Set point color to white
+                }
+            }
+        },
+        plugins: [{
+            id: 'verticalLineWithImage',
+            afterDraw: function(chart) {
+                const ctx = chart.ctx;
+                const xAxis = chart.scales.x;
+                const yAxis = chart.scales.y;
+
+                if (chart.config.data.killsData) {
+                    chart.config.data.killsData.forEach(kill => {
+                        const x = xAxis.getPixelForValue(kill.time_kill);
+                        const yTop = yAxis.getPixelForValue(yAxis.max);
+                        const yBottom = yAxis.getPixelForValue(yAxis.min);
+
+                        // Draw the red line
+                        ctx.beginPath();
+                        ctx.moveTo(x, yTop);
+                        ctx.lineTo(x, yBottom);
+                        ctx.strokeStyle = 'red';
+                        ctx.stroke();
+
+                        // Draw the image
+                        const img = new Image();
+                        img.src = "{% static 'killskull.png' %}";
+                        const imgSize = 20; // Adjust the size of the image
+                        const imgX = x - imgSize / 2;
+                        const imgY = (yTop + yBottom) / 2 - imgSize / 2;
+
+                        img.onload = function() {
+                            ctx.drawImage(img, imgX, imgY, imgSize, imgSize);
+                        }
+                    });
+                }
+            }
+        }]
+    });
+
+    const playerColors = {};  // Object to store player colors
+
+    const buttons = document.querySelectorAll('.chart-button, .special-button');
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Get currently selected buttons
+            const clickedButtons = Array.from(buttons).filter(btn => btn.classList.contains('clicked'));
+
+            // Limit to 5 buttons selected
+            if (clickedButtons.length >= 5 && !this.classList.contains('clicked')) {
+                alert('You can select up to 5 charts only.');
+                return;
+            }
+
+            this.classList.toggle('clicked');
+            updateChart();
+        });
+    });
+
+    function updateChart() {
+        const clickedButtons = Array.from(buttons)
+            .filter(button => button.classList.contains('clicked'))
+            .map(button => button.getAttribute('data-dataset'));
+
+        fetchChartData(clickedButtons);
+    }
+
+    function fetchChartData(clickedButtons) {
+        const params = new URLSearchParams({
+            lobby_id: '{{ lobby_data.lobby_id }}',
+            buttons: clickedButtons.join(',')  // Join the dataset names for the query parameter
+        });
+
+        fetch(`http://127.0.0.1:8000/pastats/api/get_charts?${params.toString()}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Handle data
+                console.log('Chart Data:', data);
+                console.log('Kills Data:', data.killsData); // Add this line
+
+                chart.data.labels = data.current_time;
+                chart.data.datasets = [];
+
+                // Retrieve player colors from the server response and update the local playerColors object
+                Object.entries(data.player_colors).forEach(([uber_id, color]) => {
+                    if (!playerColors[uber_id]) {
+                        playerColors[uber_id] = `rgb(${color.join(',')})`;
+                    }
+                });
+
+                // Update datasets for each clicked button and player
+                clickedButtons.forEach(button => {
+                    const buttonData = data[button];
+                    if (button === 'killsData') {
+                        chart.data.killsData = buttonData;
+                    } else {
+                        for (const [uber_id, values] of Object.entries(buttonData)) {
+                            const color = playerColors[uber_id] ? playerColors[uber_id] : getRandomColor();
+                            chart.data.datasets.push({
+                                label: `${button} - Player ${uber_id}`,
+                                data: values.map((value, index) => ({ x: data.current_time[index], y: value })),
+                                borderColor: color,
+                                fill: false
+                            });
+                        }
+                    }
+                });
+
+                chart.update();
+            })
+            .catch(error => {
+                console.error('Error fetching chart data:', error);
+            });
+    }
+
+    // Function to generate random colors for chart lines (used as fallback)
+    function getRandomColor() {
+        var letters = '0123456789ABCDEF';
+        var color = '#';
+        for (var i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+});
+</script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"></script>
+
+</body>
+</html>
