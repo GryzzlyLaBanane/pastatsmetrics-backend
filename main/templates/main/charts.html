@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
             buttons: clickedButtons.join(',')  // Join the dataset names for the query parameter
         });
 
-        fetch(`https://pastatsmetrics.com/pastats/api/get_charts?${params.toString()}`)
+        fetch(`http://127.0.0.1:8000/pastats/api/get_charts?${params.toString()}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);

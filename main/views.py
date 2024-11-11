@@ -385,7 +385,7 @@ def get_charts(request):
     try:
         game_data = GamesEconomyApm.objects.filter(lobby_id=lobby_id).order_by('current_time', 'uber_id')
         data['current_time'] = list(sorted(set(game_data.values_list('current_time', flat=True))))
-        print("mon gros tarpé", data['current_time'])
+        #print("mon gros tarpé", data['current_time'])
 
         lobby_data = get_object_or_404(LobbyData, lobby_id=lobby_id)
         player_list = json.loads(lobby_data.player_list)
@@ -411,7 +411,7 @@ def get_charts(request):
         unit_data = UnitsBuildingsCountMLA.objects.filter(lobby_id=lobby_id).order_by('current_time', 'uber_id')
         unit_field_names = [field.name for field in UnitsBuildingsCountMLA._meta.fields if
                             field.name.endswith('_count')]
-
+        data['current_time'] = list(sorted(set(unit_data.values_list('current_time', flat=True))))
         for button in clicked_buttons:
             if button.startswith('total'):
                 data[button] = {}
@@ -430,10 +430,27 @@ def get_charts(request):
                         (button == 'totalBot' and 'bot' in types) or \
                         (button == 'totalTank' and 'tank' in types):
 
+                    # pour chaque joueur, pour chaque current time pour chaque unité leur count
                     players_data = unit_data.values_list('uber_id', 'current_time', field_name)
                     for uber_id, current_time, value in players_data:
                         idx = data['current_time'].index(current_time)
                         data[button][uber_id][idx] += value
+                        
+                    # for idx in range(len(players_data)):
+                    #     uber_id = players_data[idx][0]
+                    #     current_time = players_data[idx][1]
+                    #     value = players_data[idx][2]
+                    #     print(len(players_data), len(data['current_time']))
+                    #     #idx = data['current_time'].index(current_time) #trouve l'index du current_time dans le dataset
+                    #     data[button][uber_id][idx] += value
+                    #
+                    #     # si jamais y'a un saut dans les current time jsp pk, alors celui en -1 prend la valeur courante ça empeche les zéro dans le code uwu
+                    #     try :
+                    #         if data[button][uber_id][idx-1] == 0 and data[button][uber_id][idx-2] != 0:
+                    #             data[button][uber_id][idx-1] = data[button][uber_id][idx]
+                    #     except :
+                    #         pass
+                    #     #print("idx", idx, data['current_time'][idx], current_time)#data[button][uber_id][0])
 
             # Add fake data for second player
             fake_uber_id = 'fake_player'
@@ -460,6 +477,7 @@ def get_charts(request):
             for field_name in unit_field_names:
                 if 'land' in unit_types.get(field_name, []):
                     players_data = unit_data.values_list('uber_id', 'current_time', field_name)
+                    #print("bah le player data hein", players_data)
                     for uber_id, current_time, value in players_data:
                         idx = data['current_time'].index(current_time)
                         if uber_id not in totalLand:
@@ -499,9 +517,10 @@ def get_charts(request):
                             totalOrbital[uber_id] = [0] * len(data['current_time'])
                         totalOrbital[uber_id][idx] += value
 
-            # Sum totalLand, totalAir, totalNaval, and totalOrbital into totalUnits
+            # Calculate totalUnits - Sum totalLand, totalAir, totalNaval, and totalOrbital
             for uber_id in unit_data.values_list('uber_id', flat=True).distinct():
                 for idx in range(len(data['current_time'])):
+                    #print("voili", totalLand.get(uber_id, [0] * len(data['current_time']))[idx])
                     data['totalUnits'][uber_id][idx] = (
                             totalLand.get(uber_id, [0] * len(data['current_time']))[idx] +
                             totalAir.get(uber_id, [0] * len(data['current_time']))[idx] +
