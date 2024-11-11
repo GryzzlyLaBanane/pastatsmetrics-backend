@@ -384,7 +384,8 @@ def get_charts(request):
 
     try:
         game_data = GamesEconomyApm.objects.filter(lobby_id=lobby_id).order_by('current_time', 'uber_id')
-        data['current_time'] = list(game_data.values_list('current_time', flat=True).distinct())
+        game_data_for_time = GamesEconomyApm.objects.filter(lobby_id=lobby_id).order_by('current_time')
+        data['current_time'] = list(game_data_for_time.values_list('current_time', flat=True).distinct())
 
         lobby_data = get_object_or_404(LobbyData, lobby_id=lobby_id)
         player_list = json.loads(lobby_data.player_list)
@@ -460,8 +461,6 @@ def get_charts(request):
                 if 'land' in unit_types.get(field_name, []):
                     players_data = unit_data.values_list('uber_id', 'current_time', field_name)
                     for uber_id, current_time, value in players_data:
-                        if uber_id == "4722181537817857297":
-                            print(current_time, value)
                         idx = data['current_time'].index(current_time)
                         if uber_id not in totalLand:
                             totalLand[uber_id] = [0] * len(data['current_time'])
