@@ -197,6 +197,7 @@ class LobbyData(models.Model):
                 "is_DynamicAlliances": "is_dynamic_alliances",
                 "dynamic_AllianceVictory": "dynamic_alliance_victory",
                 "is_GalacticWar": "is_galacticwar",
+                "player_list": "player_list",
             }
 
             # Update fields if they exist in the incoming data
