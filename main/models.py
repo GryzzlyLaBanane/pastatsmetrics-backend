@@ -41,6 +41,7 @@ class PlayersGamesHistory(models.Model):
             lobby_data = LobbyData.objects.get(lobby_id=plobby_id, uber_id=puber_id)
             self.date_game_start = lobby_data.date_game_start
             self.date_game_last = lobby_data.date_game_last
+            print("bah oui fils de pute", lobby_data.player_list,lobby_data.player_list[lobby_data.player_name][1])
             self.player_color = json.loads(lobby_data.player_list)[lobby_data.player_name][1]
 
             self.save()
