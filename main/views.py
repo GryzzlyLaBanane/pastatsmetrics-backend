@@ -9,11 +9,6 @@ from django.db.models import Q
 import ast
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
-from bokeh.plotting import figure
-from bokeh.embed import components
-from bokeh.models import ColumnDataSource, AjaxDataSource
-from bokeh.resources import CDN
-from bokeh.embed import json_item
 
 def pastats(request):
     return render(request, "main/research.html")
@@ -92,7 +87,7 @@ def search_players(request):
             q_objects |= Q(user_name__icontains=query)
         if 'system_name' in fields:
             q_objects |= Q(system_name__icontains=query)
-
+        print("turbo teuuuuuuub ----------------------------------------------", fields)
         matching_entries = LobbyData.objects.filter(q_objects)
 
         # Feature pour plus tard, en gros si on chercher un nom, on obtiens que les game avec ce nom mais pas tt les
