@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- http://127.0.0.1:8000/pastats/api/search/ -->
+<!-- https://pastatsmetrics.com/pastats/api/search/ -->
 {% load static %}
 <html lang="en">
 <head>
@@ -64,7 +64,7 @@
                     return;
                 }
 
-                $.get('http://127.0.0.1:8000/pastats/api/search/', { query: query, fields: fields.join(',') }, function(data) {
+                $.get('https://pastatsmetrics.com/pastats/api/search/', { query: query, fields: fields.join(',') }, function(data) {
                     $('#search-results').empty();
                     if (data.length === 0) {
                         $('#search-results').append('<p>No results found</p>');
@@ -115,7 +115,7 @@
                             }
 
                             table += `
-                                <tr class="clickable-row" data-href="http://127.0.0.1:8000/pastats/charts=${entry.lobby_id}">
+                                <tr class="clickable-row" data-href="https://pastatsmetrics.com/pastats/charts=${entry.lobby_id}">
                                     <td>${entry.date_game_start}</td>
                                     <td>${entry.system_name}</td>
                                     <td>${entry.player_count}</td>
