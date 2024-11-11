@@ -225,10 +225,15 @@ class LobbyData(models.Model):
             # Handle player_list
             if "player_list" in lobby_data:
                 #print("IN GAME LOBBYDATA", lobby_data)
-
-                new_player_data = ast.literal_eval(lobby_data["player_list"])
+                if isinstance(lobby_data["player_list"], str):
+                    new_player_data = ast.literal_eval(lobby_data["player_list"])
+                else:
+                    new_player_data = lobby_data["player_list"]
                 self.player_count = len(new_player_data)
-                existing_player_list = ast.literal_eval(self.player_list)
+                if isinstance(self.player_list, str):
+                    existing_player_list = ast.literal_eval(self.player_list)
+                else:
+                    existing_player_list = self.player_list
 
                 if not isinstance(existing_player_list, dict):
                     existing_player_list = {}
