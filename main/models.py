@@ -119,61 +119,65 @@ class LobbyData(models.Model):
         unique_together = ("uber_id", "lobby_id", "player_name", "user_name")
 
     def check_n_save(self, lobby_data):
-        try :
-            field_mapping = {
-                "lobby_id": "lobby_id",
-                "uber_id": "uber_id",
-                "player_name": "player_name",
-                "date_game_start": "the_date",
-                "game_mode": "game_mode",
-                "game_name": "game_name",
-                "is_titan": "is_Titan",
-                "is_ranked": "is_Ranked",
-                "system_name": "system_name",
-                "planets_biomes": "planets_biomes",
-                "winners": "winners",
-                "server_mods": "server_mods",
-                "player_list": "player_list",
-                "player_count": "player_count",
-                "user_name": "user_name",
-                "is_Local": "is_Local",
-                "is_Public": "is_Public",
-                "is_FriendsOnly": "is_FriendsOnly",
-                "is_Private": "is_Hidden",
-                "is_GalacticWar": "is_GalacticWar",
-                "is_LandAnywhere": "is_LandAnywhere",
-                "is_ListenToSpectators": "is_ListenToSpectators",
-                "is_Sandbox": "is_Sandbox",
-                "is_DynamicAlliances": "is_DynamicAlliances",
-                "dynamic_AllianceVictory": "dynamic_AllianceVictory"
-            }
+        if LobbyData.objects.filter(lobby_id=lobby_data['lobby_id']).exists():
+            print("An entry with this lobby_id already exists. Skipping save.")
+            return
+        else:
+            try :
+                field_mapping = {
+                    "lobby_id": "lobby_id",
+                    "uber_id": "uber_id",
+                    "player_name": "player_name",
+                    "date_game_start": "the_date",
+                    "game_mode": "game_mode",
+                    "game_name": "game_name",
+                    "is_titan": "is_Titan",
+                    "is_ranked": "is_Ranked",
+                    "system_name": "system_name",
+                    "planets_biomes": "planets_biomes",
+                    "winners": "winners",
+                    "server_mods": "server_mods",
+                    "player_list": "player_list",
+                    "player_count": "player_count",
+                    "user_name": "user_name",
+                    "is_Local": "is_Local",
+                    "is_Public": "is_Public",
+                    "is_FriendsOnly": "is_FriendsOnly",
+                    "is_Private": "is_Hidden",
+                    "is_GalacticWar": "is_GalacticWar",
+                    "is_LandAnywhere": "is_LandAnywhere",
+                    "is_ListenToSpectators": "is_ListenToSpectators",
+                    "is_Sandbox": "is_Sandbox",
+                    "is_DynamicAlliances": "is_DynamicAlliances",
+                    "dynamic_AllianceVictory": "dynamic_AllianceVictory"
+                }
 
-            for field, key in field_mapping.items():
-                if key in lobby_data:
-                    setattr(self, field, lobby_data[key])
+                for field, key in field_mapping.items():
+                    if key in lobby_data:
+                        setattr(self, field, lobby_data[key])
 
-            # Handle defaults for fields that need them
-            self.player_name = lobby_data.get("player_name", "None")
-            self.game_name = lobby_data.get("game_name", "None")
-            self.planets_biomes = lobby_data.get("planets_biomes", "earth")
-            self.winners = lobby_data.get("winners", "None")
-            self.server_mods = lobby_data.get("server_mods", "No server mods")
-            self.player_count = lobby_data.get("player_count", 0)
-            self.is_Local = lobby_data.get("is_Local", False)
-            self.is_Public = lobby_data.get("is_Public", False)
-            self.is_FriendsOnly = lobby_data.get("is_FriendsOnly", False)
-            self.is_Private = lobby_data.get("is_Hidden", False)
-            self.is_GalacticWar = lobby_data.get("is_GalacticWar", False)
-            self.is_LandAnywhere = lobby_data.get("is_LandAnywhere", False)
-            self.is_ListenToSpectators = lobby_data.get("is_ListenToSpectators", False)
-            self.is_Sandbox = lobby_data.get("is_Sandbox", False)
-            self.is_DynamicAlliances = lobby_data.get("is_DynamicAlliances", False)
-            self.dynamic_AllianceVictory = lobby_data.get("dynamic_AllianceVictory", False)
-            print("nickeld abant save")
-            self.save()
-            print("aftersave  heck bdd")
-        except Exception as e:
-            print("jsp frero mais y'a eu un pb", e)
+                # Handle defaults for fields that need them
+                self.player_name = lobby_data.get("player_name", "None")
+                self.game_name = lobby_data.get("game_name", "None")
+                self.planets_biomes = lobby_data.get("planets_biomes", "earth")
+                self.winners = lobby_data.get("winners", "None")
+                self.server_mods = lobby_data.get("server_mods", "No server mods")
+                self.player_count = lobby_data.get("player_count", 0)
+                self.is_Local = lobby_data.get("is_Local", False)
+                self.is_Public = lobby_data.get("is_Public", False)
+                self.is_FriendsOnly = lobby_data.get("is_FriendsOnly", False)
+                self.is_Private = lobby_data.get("is_Hidden", False)
+                self.is_GalacticWar = lobby_data.get("is_GalacticWar", False)
+                self.is_LandAnywhere = lobby_data.get("is_LandAnywhere", False)
+                self.is_ListenToSpectators = lobby_data.get("is_ListenToSpectators", False)
+                self.is_Sandbox = lobby_data.get("is_Sandbox", False)
+                self.is_DynamicAlliances = lobby_data.get("is_DynamicAlliances", False)
+                self.dynamic_AllianceVictory = lobby_data.get("dynamic_AllianceVictory", False)
+                print("nickeld abant save")
+                self.save()
+                print("aftersave  heck bdd")
+            except Exception as e:
+                print("jsp frero mais y'a eu un pb", e)
 
     def update_lobby_data(self, lobby_data):
         try:
