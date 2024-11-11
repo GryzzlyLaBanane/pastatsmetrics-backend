@@ -460,7 +460,8 @@ def get_charts(request):
                 if 'land' in unit_types.get(field_name, []):
                     players_data = unit_data.values_list('uber_id', 'current_time', field_name)
                     for uber_id, current_time, value in players_data:
-                        print(uber_id, current_time, value)
+                        if uber_id == "4722181537817857297":
+                            print(current_time, value)
                         idx = data['current_time'].index(current_time)
                         if uber_id not in totalLand:
                             totalLand[uber_id] = [0] * len(data['current_time'])
