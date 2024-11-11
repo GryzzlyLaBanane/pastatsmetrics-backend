@@ -384,7 +384,7 @@ def get_charts(request):
 
     try:
         game_data = GamesEconomyApm.objects.filter(lobby_id=lobby_id).order_by('current_time', 'uber_id')
-        data['current_time'] = list(game_data.values_list('current_time', flat=True).distinct())
+        data['current_time'] = list(sorted(set(game_data.values_list('current_time', flat=True))))
         print("mon gros tarpé", data['current_time'])
 
         lobby_data = get_object_or_404(LobbyData, lobby_id=lobby_id)
