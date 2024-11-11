@@ -9,6 +9,11 @@ from django.db.models import Q
 import ast
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
+from bokeh.plotting import figure
+from bokeh.embed import components
+from bokeh.models import ColumnDataSource, AjaxDataSource
+from bokeh.resources import CDN
+from bokeh.embed import json_item
 
 def pastats(request):
     return render(request, "main/research.html")
