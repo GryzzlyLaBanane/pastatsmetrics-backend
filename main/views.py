@@ -41,7 +41,7 @@ def gamedata_receiver(request):
         uber_id = all_data.get("uber_id")
         if not lobby_id:
             return JsonResponse({'error': 'lobby_id is required'}, status=400)
-        lobby_instance, created = LobbyData.objects.get_or_create(lobby_id=lobby_id, uber_id=uber_id)
+        lobby_instance, created = LobbyData.objects.get_or_create(lobby_id=lobby_id)
         # Use the existing or new instance to update data
         lobby_instance.update_lobby_data(all_data)
         # if created:
