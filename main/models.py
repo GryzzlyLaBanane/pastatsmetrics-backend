@@ -1,6 +1,8 @@
 import datetime
 import uuid
 import json
+import ast
+import traceback
 from django.db import models
 from django.utils import timezone
 from django.db.models import Sum
@@ -199,12 +201,10 @@ class LobbyData(models.Model):
                 "dynamic_AllianceVictory": "dynamic_alliance_victory",
                 "is_GalacticWar": "is_galacticwar",
             }
-
             # Update fields if they exist in the incoming data
             for field, key in field_mapping.items():
                 if key in lobby_data:
                     setattr(self, field, lobby_data[key])
-
             # Handle defaults for fields that need them, only if the field is not provided in the data
             if "player_name" not in lobby_data:
                 self.player_name = "None"
@@ -224,59 +224,41 @@ class LobbyData(models.Model):
                 self.dynamic_AllianceVictory = False
             # Handle player_list
             if "player_list" in lobby_data:
-                print("IN GAME LOBBYDATA", lobby_data)
+                #print("IN GAME LOBBYDATA", lobby_data)
 
+                new_player_data = ast.literal_eval(lobby_data["player_list"])
+                self.player_count = len(new_player_data)
+                existing_player_list = ast.literal_eval(self.player_list)
 
-                # en gros ici on a
-                #  existing_player_list = self.player_list = {'< blank > (88)': '4722181537817857297', 'Malgour': '17851776222802156084'}
-                # et lobby_data["player_list"] = [['Malgour', [223, 175, 0]], ['< blank > (88)', [223, 223, 0]]
-                existing_player_list = self.player_list
-                result = {}
-                for player_name, colors in lobby_data["player_list"]:
+                if not isinstance(existing_player_list, dict):
+                    existing_player_list = {}
+
+                for player_info in new_player_data:
+                    player_name = player_info[0]
+                    player_stats = player_info[1]
+
                     if player_name in existing_player_list:
-                        # Get the ID from existing_player_list
-                        player_id = existing_player_list[player_name]
-                        # Add to result in the required format
-                        result[player_name] = [player_id, colors]
-                print("BAH OU IRESULT", result)
-                self.player_list = result
+                        if isinstance(existing_player_list[player_name], list) and player_stats not in \
+                                existing_player_list[player_name]:
+                            existing_player_list[player_name].append(player_stats)
+                        elif not isinstance(existing_player_list[player_name], list):
+                            if isinstance(existing_player_list[player_name], str) or isinstance(
+                                    existing_player_list[player_name], int):
+                                existing_player_list[player_name] = [existing_player_list[player_name]]
+                            if player_stats not in existing_player_list[player_name]:
+                                existing_player_list[player_name].append(player_stats)
+                    else:
+                        existing_player_list[player_name] = player_stats
 
-                # new_player_data = lobby_data["player_list"]
-                # self.player_count = len(new_player_data)
-                #
-                #
-                # if existing_player_list:
-                #     try:
-                #         existing_player_list = json.loads(existing_player_list.replace("'", "\""))
-                #     except json.JSONDecodeError:
-                #         existing_player_list = {}
-                #
-                # if not isinstance(existing_player_list, dict):
-                #     existing_player_list = {}
-                #
-                # for player_info in new_player_data:
-                #     player_name = player_info[0]
-                #     player_stats = player_info[1]
-                #
-                #     if player_name in existing_player_list:
-                #         if isinstance(existing_player_list[player_name], list) and player_stats not in \
-                #                 existing_player_list[player_name]:
-                #             existing_player_list[player_name].append(player_stats)
-                #         elif not isinstance(existing_player_list[player_name], list):
-                #             if isinstance(existing_player_list[player_name], str) or isinstance(
-                #                     existing_player_list[player_name], int):
-                #                 existing_player_list[player_name] = [existing_player_list[player_name]]
-                #             if player_stats not in existing_player_list[player_name]:
-                #                 existing_player_list[player_name].append(player_stats)
-                #     else:
-                #         existing_player_list[player_name] = player_stats
-                #
-                # self.player_list = json.dumps(existing_player_list, ensure_ascii=False)
+                self.player_list = json.dumps(existing_player_list, ensure_ascii=False)
             else:
                 self.player_count = 0
+
             self.save()
+
         except Exception as e:
             print("An error occurred while updating the lobby data:", e)
+            traceback.print_exc()
 
 
 class UnitsBuildingsCountMLA(models.Model):
