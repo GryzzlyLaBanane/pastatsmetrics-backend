@@ -390,21 +390,48 @@ def get_charts(request):
         player_list = json.loads(lobby_data.player_list)
 
         # Handle the data from GamesEconomyApm
+        # for button in clicked_buttons:
+        #     field_name = field_mapping.get(button)
+        #     if field_name and button.startswith(('general', 'metal', 'energy', 'apm')):
+        #         data[button] = {}
+        #         players_data = game_data.values_list('uber_id', field_name)
+        #         for uber_id, value in players_data:
+        #             if uber_id not in data[button]:
+        #                 data[button][uber_id] = []
+        #             data[button][uber_id].append(value)
+        #
+        #         # Add fake data for second player
+        #         fake_uber_id = 'fake_player'
+        #         if data[button]:
+        #             fake_data_length = len(next(iter(data[button].values())))
+        #             data[button][fake_uber_id] = [i * 10 for i in range(fake_data_length)]
         for button in clicked_buttons:
             field_name = field_mapping.get(button)
             if field_name and button.startswith(('general', 'metal', 'energy', 'apm')):
                 data[button] = {}
                 players_data = game_data.values_list('uber_id', field_name)
-                for uber_id, value in players_data:
-                    if uber_id not in data[button]:
-                        data[button][uber_id] = []
-                    data[button][uber_id].append(value)
 
-                # Add fake data for second player
-                fake_uber_id = 'fake_player'
-                if data[button]:
-                    fake_data_length = len(next(iter(data[button].values())))
-                    data[button][fake_uber_id] = [i * 10 for i in range(fake_data_length)]
+                # Prepare a dictionary to store the last known values for each player
+                last_known_value = {}
+
+                # Initialize data for each player with an empty list
+                for uber_id in game_data.values_list('uber_id', flat=True).distinct():
+                    data[button][uber_id] = []
+
+                # Populate data with the player's values and propagate the last known value if missing
+                for current_time in data['current_time']:
+                    for uber_id in data[button].keys():
+                        player_values = game_data.filter(uber_id=uber_id, current_time=current_time).values_list(
+                            field_name, flat=True)
+
+                        if player_values:
+                            # If there's data for this time, use it and update the last known value
+                            value = player_values[0]
+                            data[button][uber_id].append(value)
+                            last_known_value[uber_id] = value
+                        else:
+                            # If no data, use the last known value (if any)
+                            data[button][uber_id].append(last_known_value.get(uber_id, None))
 
         # Handle the data from UnitsBuildingsCountMLA
         unit_data = UnitsBuildingsCountMLA.objects.filter(lobby_id=lobby_id).order_by('current_time', 'uber_id')
