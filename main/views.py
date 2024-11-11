@@ -430,11 +430,9 @@ def get_charts(request):
                         (button == 'totalTank' and 'tank' in types):
 
                     players_data = unit_data.values_list('uber_id', 'current_time', field_name)
-                    print("player_data", players_data)
                     for uber_id, current_time, value in players_data:
                         idx = data['current_time'].index(current_time)
                         data[button][uber_id][idx] += value
-                        print("inside for loop value", value)
 
             # Add fake data for second player
             fake_uber_id = 'fake_player'
@@ -462,6 +460,7 @@ def get_charts(request):
                 if 'land' in unit_types.get(field_name, []):
                     players_data = unit_data.values_list('uber_id', 'current_time', field_name)
                     for uber_id, current_time, value in players_data:
+                        print(uber_id, current_time, value)
                         idx = data['current_time'].index(current_time)
                         if uber_id not in totalLand:
                             totalLand[uber_id] = [0] * len(data['current_time'])
