@@ -14,7 +14,7 @@
     <script src="https://d3js.org/d3.v6.min.js"></script>
 </head>
 <body class="bg-dark text-light">
-        <h1>Lobby Charts for {{ lobby_data.lobby_id }}</h1>
+        <h1>Lobby Charts for {{ lobby_data }}</h1>
         <div class="row">
             <div class="col-lg-2 btn-panel">
                 <!-- Button panel -->
@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function fetchChartData(clickedButtons) {
         const params = new URLSearchParams({
-            lobby_id: '{{ lobby_data.lobby_id }}',
+            lobby_id: '{{ lobby_data }}',
             buttons: clickedButtons.join(',')  // Join the dataset names for the query parameter
         });
 

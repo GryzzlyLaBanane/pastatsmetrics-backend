@@ -137,7 +137,7 @@ def search_players(request):
 
 
 def charts(request, lobby_id):
-    lobby_data = get_object_or_404(LobbyData, lobby_id=lobby_id)
+    lobby_data = lobby_id#get_object_or_404(LobbyData, lobby_id=lobby_id)
     x_values = list(range(1, 11))  # X values from 1 to 10
     y_values = [i ** 2 for i in x_values]  # Y values as squares of X
     initial_source = ColumnDataSource(data={'x': x_values, 'y': y_values})
