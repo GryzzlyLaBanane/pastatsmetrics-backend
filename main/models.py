@@ -43,8 +43,6 @@ class PlayersGamesHistory(models.Model):
             lobby_data = LobbyData.objects.get(lobby_id=plobby_id, uber_id=puber_id)
             self.date_game_start = lobby_data.date_game_start
             self.date_game_last = lobby_data.date_game_last
-            print("bah oui fils de pute", lobby_data.player_list, type(lobby_data.player_list))
-            #self.player_color = json.loads(lobby_data.player_list)[lobby_data.player_name][1]
 
             self.save()
 
@@ -176,9 +174,7 @@ class LobbyData(models.Model):
                 self.is_Sandbox = lobby_data.get("is_Sandbox", False)
                 self.is_DynamicAlliances = lobby_data.get("is_DynamicAlliances", False)
                 self.dynamic_AllianceVictory = lobby_data.get("dynamic_AllianceVictory", False)
-                print("nickeld abant save")
                 self.save()
-                print("aftersave  heck bdd")
             except Exception as e:
                 print("jsp frero mais y'a eu un pb", e)
 
@@ -222,9 +218,10 @@ class LobbyData(models.Model):
                 self.is_DynamicAlliances = False
             if "dynamic_alliance_victory" not in lobby_data:
                 self.dynamic_AllianceVictory = False
-            # Handle player_list
+            # hardcore code to understand, no idea how it works but it works,
+            # problems comes from the playerlist to be deepshit because it's filled in 2 times
+            # and local games do not have uber_id or lobby_id, so hardcore stuff to solve with a small brain
             if "player_list" in lobby_data:
-                #print("IN GAME LOBBYDATA", lobby_data)
                 if isinstance(lobby_data["player_list"], str):
                     new_player_data = ast.literal_eval(lobby_data["player_list"])
                 else:
@@ -664,7 +661,6 @@ class UnitsBuildingsCountMLA(models.Model):
                             int(getattr(self, full_list_unb[path_unb])) + len(json_list_unb[path_unb]))
                     else:
                         print(f"Key {path_unb} not found in full_list_unb.")
-                print("ok")
                 self.save()
 
 # class UnitsBuildingsCountLegion(models.Model):

@@ -9,11 +9,6 @@ from django.db.models import Q
 import ast
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
-from bokeh.plotting import figure
-from bokeh.embed import components
-from bokeh.models import ColumnDataSource, AjaxDataSource
-from bokeh.resources import CDN
-from bokeh.embed import json_item
 
 def pastats(request):
     return render(request, "main/research.html")
@@ -26,7 +21,6 @@ def lobbydata_receiver(request):
         lobby_data = json.loads(raw_lobby_data)
         new_lobby_to_save = LobbyData()
         new_lobby_to_save.check_n_save(lobby_data)
-        print("OUAAAAAAAAAAAAAIIIIIIIIS C GREG ===>", raw_lobby_data)
     return JsonResponse({'message': 'Data received'}, status=200)
 
 
@@ -34,7 +28,6 @@ def lobbydata_receiver(request):
 def gamedata_receiver(request):
     if request.method == 'POST':
         raw_game_data = request.body.decode("utf-8")
-        #print(raw_game_data)
         all_data = json.loads(raw_game_data)
 
         lobby_id = all_data.get("lobby_id")
@@ -42,19 +35,13 @@ def gamedata_receiver(request):
         if not lobby_id:
             return JsonResponse({'error': 'lobby_id is required'}, status=400)
         lobby_instance, created = LobbyData.objects.get_or_create(lobby_id=lobby_id)
-        # Use the existing or new instance to update data
         lobby_instance.update_lobby_data(all_data)
-        # if created:
-        #     return JsonResponse({'message': 'Lobby data created successfully'})
-        # else:
-        #     return JsonResponse({'message': 'Lobby data updated successfully'})
 
         uber_id = all_data.get("uber_id")
         time_data = all_data.get("time_in_seconds")
         unb_data = all_data.get("unb_data")
         units_buildings = UnitsBuildingsCountMLA()
         units_buildings.check_n_save(lobby_id, uber_id, time_data, unb_data)
-        print("good")
 
         eco_of_the_game = GamesEconomyApm()
         eco_of_the_game.check_n_save(all_data.get("eco_data"),
@@ -111,7 +98,6 @@ def search_players(request):
 
         results = []
         for entry in matching_entries:
-            #print(type(ast.literal_eval(entry.winners)))  # Print the winners field for debugging
             winners_list = ast.literal_eval(entry.winners)
             winners_str = ""
             if winners_list :
@@ -122,7 +108,6 @@ def search_players(request):
                         winners_str += winners_list[i] + ", "
             else :
                 winners_str = "No Known Winners"
-            #print(winners_str)
             results.append({
                 'lobby_id': entry.lobby_id,
                 'uber_id': entry.uber_id,
@@ -142,17 +127,9 @@ def search_players(request):
 
 
 def charts(request, lobby_id):
-    lobby_data = lobby_id#get_object_or_404(LobbyData, lobby_id=lobby_id)
-    x_values = list(range(1, 11))  # X values from 1 to 10
-    y_values = [i ** 2 for i in x_values]  # Y values as squares of X
-    initial_source = ColumnDataSource(data={'x': x_values, 'y': y_values})
-    plot = figure(title="Economy Chart", x_axis_label='Time', y_axis_label='Value', sizing_mode="stretch_width",
-                  height=400)
-    plot.line(x='x', y='y', source=initial_source, line_width=2, name="my_chart")
-    script, div = components(plot)
-    plot_id = plot.ref['id']
+    lobby_data = lobby_id #get_object_or_404(LobbyData, lobby_id=lobby_id)
     return render(request, 'main/charts.html',
-                  {'script': script, 'div': div, 'lobby_data': lobby_data, 'plot_id': plot_id})
+                  {'lobby_data': lobby_data})
 
 
 def get_charts(request):
@@ -341,12 +318,9 @@ def get_charts(request):
         "avatar_count": ["special"],
         "radar_jamming_station_count": ["building"]}
     clicked_buttons = request.GET.getlist('buttons')[0].split(",")
-    print(clicked_buttons)
     lobby_id = request.GET.get('lobby_id')
-
     if not lobby_id:
         return JsonResponse({'error': 'Lobby ID is required'}, status=400)
-
     data = {'current_time': []}
     field_mapping = {
         'generalEfficiency': 'efficiency',
@@ -379,18 +353,23 @@ def get_charts(request):
         'totalNaval': 'total_naval',
         'apmData': 'apm_data'
     }
-
-    # Add unit_types variable here
-
     try:
         game_data = GamesEconomyApm.objects.filter(lobby_id=lobby_id).order_by('current_time', 'uber_id')
         data['current_time'] = list(sorted(set(game_data.values_list('current_time', flat=True))))
-        #print("mon gros tarpé", data['current_time'])
 
         lobby_data = get_object_or_404(LobbyData, lobby_id=lobby_id)
         player_list = json.loads(lobby_data.player_list)
 
-        # Handle the data from GamesEconomyApm
+        # fix du player history et player list pour avoir le player list avecd les bon UBERID et pas juste les vieux nom dégueux
+        # il faudrait update la player_list de lobby data quand c'est une game local
+        game_hist_data = PlayersGamesHistory.objects.filter(lobby_id=lobby_id)
+        list_uber_id = []
+        for player in player_list:
+            for player_hist in game_hist_data:
+                if player_hist.player_name == player:
+                    player_list[player][0] = player_hist.uber_id
+                    list_uber_id.append(player_hist.uber_id)
+
         for button in clicked_buttons:
             field_name = field_mapping.get(button)
             if field_name and button.startswith(('general', 'metal', 'energy', 'apm')):
@@ -401,140 +380,66 @@ def get_charts(request):
                         data[button][uber_id] = []
                     data[button][uber_id].append(value)
 
-                # Add fake data for second player
-                fake_uber_id = 'fake_player'
-                if data[button]:
-                    fake_data_length = len(next(iter(data[button].values())))
-                    data[button][fake_uber_id] = [i * 10 for i in range(fake_data_length)]
 
-        # Handle the data from UnitsBuildingsCountMLA
-        unit_data = UnitsBuildingsCountMLA.objects.filter(lobby_id=lobby_id).order_by('current_time', 'uber_id')
+
         unit_field_names = [field.name for field in UnitsBuildingsCountMLA._meta.fields if
                             field.name.endswith('_count')]
-        data['current_time'] = list(sorted(set(unit_data.values_list('current_time', flat=True))))
+
+        # Define a mapping of buttons to their corresponding tags
+        button_tag_mapping = {
+            "totalBot": ["bot"],
+            "totalTank": ["tank"],
+            "totalAir": ["air"],
+            "totalNaval": ["naval"],
+            "totalOrbital": ["orbital"],
+            "totalFabbers": ["fabber"],
+            "totalFactory": ["factory"],
+            "totalBuildings": ["building"],
+            "totalLand": ["bot", "tank"],  # Sum of both bot and tank
+            "totalUnits": ["air", "naval", "orbital", "bot", "tank"]  # Sum of all unit types
+        }
+
         for button in clicked_buttons:
-            if button.startswith('total'):
+            if button in button_tag_mapping:
                 data[button] = {}
-                for uber_id in unit_data.values_list('uber_id', flat=True).distinct():
-                    data[button][uber_id] = [0] * len(data['current_time'])
-
-            for field_name in unit_field_names:
-                types = unit_types.get(field_name, [])
-                if (button == 'totalLand' and 'land' in types) or \
-                        (button == 'totalAir' and 'air' in types) or \
-                        (button == 'totalNaval' and 'naval' in types) or \
-                        (button == 'totalOrbital' and 'orbital' in types) or \
-                        (button == 'totalBuildings' and 'building' in types) or \
-                        (button == 'totalFactory' and 'factory' in types) or \
-                        (button == 'totalFabbers' and 'fabber' in types) or \
-                        (button == 'totalBot' and 'bot' in types) or \
-                        (button == 'totalTank' and 'tank' in types):
-
-                    # pour chaque joueur, pour chaque current time pour chaque unité leur count
-                    players_data = unit_data.values_list('uber_id', 'current_time', field_name)
-                    for uber_id, current_time, value in players_data:
-                        idx = data['current_time'].index(current_time)
-                        data[button][uber_id][idx] += value
-                        
-                    # for idx in range(len(players_data)):
-                    #     uber_id = players_data[idx][0]
-                    #     current_time = players_data[idx][1]
-                    #     value = players_data[idx][2]
-                    #     print(len(players_data), len(data['current_time']))
-                    #     #idx = data['current_time'].index(current_time) #trouve l'index du current_time dans le dataset
-                    #     data[button][uber_id][idx] += value
-                    #
-                    #     # si jamais y'a un saut dans les current time jsp pk, alors celui en -1 prend la valeur courante ça empeche les zéro dans le code uwu
-                    #     try :
-                    #         if data[button][uber_id][idx-1] == 0 and data[button][uber_id][idx-2] != 0:
-                    #             data[button][uber_id][idx-1] = data[button][uber_id][idx]
-                    #     except :
-                    #         pass
-                    #     #print("idx", idx, data['current_time'][idx], current_time)#data[button][uber_id][0])
-
-            # Add fake data for second player
-            fake_uber_id = 'fake_player'
-            if button.startswith('total') and data[button]:
-                fake_data_length = len(next(iter(data[button].values())))
-                data[button][fake_uber_id] = [i * 5 for i in range(fake_data_length)]
+                # Get the specific tags for the current button
+                tags = button_tag_mapping.get(button, [])
+                # Filter unit field names based on the tags for this button
+                button_field_names = [name for name in unit_field_names if
+                                      any(tag in unit_types.get(name, []) for tag in tags)]
+                for iuber_id in list_uber_id:
+                    data[button][iuber_id] = []
+                    # Only calculate totals if there are relevant field names for this button
+                    if button_field_names:
+                        total_values = []
+                        # Retrieve data for all relevant current_time values in one query
+                        unit_data = UnitsBuildingsCountMLA.objects.filter(
+                            lobby_id=lobby_id,
+                            uber_id=iuber_id,
+                            current_time__in=data['current_time']
+                        ).order_by('current_time').values_list('current_time', *button_field_names)
+                        # Convert to a dictionary for quick lookups by current_time
+                        unit_data_dict = {item[0]: item[1:] for item in unit_data}
+                        # Process each current_time, calculating sums based on the button's fields if data is available
+                        for cut in data['current_time']:
+                            if cut in unit_data_dict:
+                                # Sum values for the button's relevant fields in this current_time entry
+                                value_sum = sum(unit_data_dict[cut])
+                                total_values.append(value_sum)
+                            elif len(total_values) >= 1:
+                                # Append the last value sum if no data found for the current_time
+                                total_values.append(total_values[-1])
+                        # Assign the calculated total_values list to the data structure
+                        data[button][iuber_id] = total_values
+                    else:
+                        # If no relevant fields are found, assign an empty list
+                        data[button][iuber_id] = []
 
         # Add player colors
         data['player_colors'] = {}
         for player_name, (uid, color) in player_list.items():
             data['player_colors'][uid] = color
-
-        # Add fake player color
-        data['player_colors']['fake_player'] = [0, 255, 255]  # Cyan color
-
-        # Initialize totalUnits separately
-        if 'totalUnits' in clicked_buttons:
-            data['totalUnits'] = {}
-            for uber_id in unit_data.values_list('uber_id', flat=True).distinct():
-                data['totalUnits'][uber_id] = [0] * len(data['current_time'])
-
-            # Calculate totalLand
-            totalLand = {}
-            for field_name in unit_field_names:
-                if 'land' in unit_types.get(field_name, []):
-                    players_data = unit_data.values_list('uber_id', 'current_time', field_name)
-                    #print("bah le player data hein", players_data)
-                    for uber_id, current_time, value in players_data:
-                        idx = data['current_time'].index(current_time)
-                        if uber_id not in totalLand:
-                            totalLand[uber_id] = [0] * len(data['current_time'])
-                        totalLand[uber_id][idx] += value
-
-            # Calculate totalAir
-            totalAir = {}
-            for field_name in unit_field_names:
-                if 'air' in unit_types.get(field_name, []):
-                    players_data = unit_data.values_list('uber_id', 'current_time', field_name)
-                    for uber_id, current_time, value in players_data:
-                        idx = data['current_time'].index(current_time)
-                        if uber_id not in totalAir:
-                            totalAir[uber_id] = [0] * len(data['current_time'])
-                        totalAir[uber_id][idx] += value
-
-            # Calculate totalNaval
-            totalNaval = {}
-            for field_name in unit_field_names:
-                if 'naval' in unit_types.get(field_name, []):
-                    players_data = unit_data.values_list('uber_id', 'current_time', field_name)
-                    for uber_id, current_time, value in players_data:
-                        idx = data['current_time'].index(current_time)
-                        if uber_id not in totalNaval:
-                            totalNaval[uber_id] = [0] * len(data['current_time'])
-                        totalNaval[uber_id][idx] += value
-
-            # Calculate totalOrbital
-            totalOrbital = {}
-            for field_name in unit_field_names:
-                if 'orbital' in unit_types.get(field_name, []):
-                    players_data = unit_data.values_list('uber_id', 'current_time', field_name)
-                    for uber_id, current_time, value in players_data:
-                        idx = data['current_time'].index(current_time)
-                        if uber_id not in totalOrbital:
-                            totalOrbital[uber_id] = [0] * len(data['current_time'])
-                        totalOrbital[uber_id][idx] += value
-
-            # Calculate totalUnits - Sum totalLand, totalAir, totalNaval, and totalOrbital
-            for uber_id in unit_data.values_list('uber_id', flat=True).distinct():
-                for idx in range(len(data['current_time'])):
-                    #print("voili", totalLand.get(uber_id, [0] * len(data['current_time']))[idx])
-                    data['totalUnits'][uber_id][idx] = (
-                            totalLand.get(uber_id, [0] * len(data['current_time']))[idx] +
-                            totalAir.get(uber_id, [0] * len(data['current_time']))[idx] +
-                            totalNaval.get(uber_id, [0] * len(data['current_time']))[idx] +
-                            totalOrbital.get(uber_id, [0] * len(data['current_time']))[idx]
-                    )
-
-            # Add fake data for second player
-            fake_uber_id = 'fake_player'
-            if data['totalUnits']:
-                fake_data_length = len(next(iter(data['totalUnits'].values())))
-                data['totalUnits'][fake_uber_id] = [i * 5 for i in range(fake_data_length)]
-
-                # Handle killsData
+        # Handle killsData
         if 'killsData' in clicked_buttons:
             kills_data = KillsData.objects.filter(lobby_id=lobby_id).order_by('time_kill')
             data['killsData'] = list(kills_data.values('time_kill', 'killer_name', 'defeated_name'))
@@ -543,5 +448,4 @@ def get_charts(request):
         return JsonResponse({'error': 'No data found for the given Lobby ID'}, status=404)
     except UnitsBuildingsCountMLA.DoesNotExist:
         return JsonResponse({'error': 'No data found for the given Lobby ID'}, status=404)
-
     return JsonResponse(data, safe=False)

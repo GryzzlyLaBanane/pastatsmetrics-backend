@@ -230,12 +230,13 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 // Handle data
                 console.log('Chart Data:', data);
-                console.log('Kills Data:', data.killsData); // Add this line
+                //console.log('Kills Data:', data.killsData); // Add this line
 
                 chart.data.labels = data.current_time;
                 chart.data.datasets = [];
 
                 // Retrieve player colors from the server response and update the local playerColors object
+
                 Object.entries(data.player_colors).forEach(([uber_id, color]) => {
                     if (!playerColors[uber_id]) {
                         playerColors[uber_id] = `rgb(${color.join(',')})`;
@@ -259,7 +260,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 });
-
                 chart.update();
             })
             .catch(error => {
